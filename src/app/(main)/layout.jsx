@@ -15,13 +15,8 @@ import { AppSidebar } from "@/components/shared/app-sidebar";
 export default function MainLayout({ children }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-
-  console.log("🟡 MainLayout render:", { user, loading });
-
   useEffect(() => {
-    console.log("🟡 MainLayout effect:", { user, loading });
     if (!loading && !user) {
-      console.log("🔴 Redirecting to /login!");
       router.push("/login");
     }
   }, [user, loading, router]);

@@ -33,7 +33,6 @@ export function AuthProvider({ children }) {
     fetchUser();
   }, [fetchUser]);
 
-  // Когда setUser вызывается напрямую (register/login) — снять loading
   const setUserAndReady = useCallback((userData) => {
     setUser(userData);
     setLoading(false);

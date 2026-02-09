@@ -11,6 +11,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   ArrowLeft,
   Send,
   Loader2,
@@ -20,9 +31,52 @@ import {
   Heart,
   Thermometer,
   Activity,
+  Trash2,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const REC_PAGE_SIZE = 10;
+
+function formatAge(birthDate) {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+
+  const lastDigit = age % 10;
+  const lastTwo = age % 100;
+
+  let word;
+  if (lastTwo >= 11 && lastTwo <= 14) {
+    word = "лет";
+  } else if (lastDigit === 1) {
+    word = "год";
+  } else if (lastDigit >= 2 && lastDigit <= 4) {
+    word = "года";
+  } else {
+    word = "лет";
+  }
+
+  return `${age} ${word}`;
+}
+
+function formatGender(gender) {
+  if (!gender) return null;
+  return gender === "MALE" ? "Мужчина" : gender === "FEMALE" ? "Женщина" : gender;
+}
+
+function formatBirthDate(birthDate) {
+  if (!birthDate) return null;
+  return new Date(birthDate).toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
 
 export default function PatientPage() {
   const { id } = useParams();
@@ -33,6 +87,7 @@ export default function PatientPage() {
 
   const [patient, setPatient] = useState(null);
   const [patientLoading, setPatientLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   const [recommendations, setRecommendations] = useState([]);
   const [recPage, setRecPage] = useState(1);
@@ -105,6 +160,18 @@ export default function PatientPage() {
     if (recPage > 1) recFetched.current = false;
   }, [recPage]);
 
+  const handleDeletePatient = async () => {
+    setDeleting(true);
+    try {
+      await api.delete(`/patient/${id}`);
+      router.push("/patients");
+    } catch (err) {
+      console.error("Failed to delete patient:", err);
+      setError("Не удалось удалить пациента. Попробуйте снова.");
+      setDeleting(false);
+    }
+  };
+
   const handleSendRecommendation = async () => {
     const text = newRec.trim();
     if (!text) return;
@@ -168,6 +235,10 @@ export default function PatientPage() {
     .toUpperCase()
     .slice(0, 2);
 
+  const age = formatAge(patient.birth_date);
+  const genderLabel = formatGender(patient.gender);
+  const birthDateLabel = formatBirthDate(patient.birth_date);
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl space-y-6">
       <Button
@@ -180,22 +251,85 @@ export default function PatientPage() {
       </Button>
 
       <Card>
-        <CardContent className="flex items-center gap-5 p-6">
-          <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl flex-shrink-0">
-            {initials}
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">{patient.name}</h1>
-            <p className="text-sm text-muted-foreground font-mono mt-1">
-              ID: {patient.id}
-            </p>
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-5">
+              <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl flex-shrink-0">
+                {initials}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">{patient.name}</h1>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  {genderLabel && (
+                    <Badge variant="secondary">{genderLabel}</Badge>
+                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline">{birthDateLabel}</Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{age}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+
+                <p className="text-xs text-muted-foreground font-mono mt-2">
+                  ID: {patient.id}
+                </p>
+              </div>
+            </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-5 w-5" />
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Удалить пациента?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Вы собираетесь удалить пациента{" "}
+                    <span className="font-semibold text-foreground">
+                      {patient.name}
+                    </span>
+                    . Это действие нельзя отменить. Все данные и рекомендации
+                    будут удалены.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeletePatient}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Удалить
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardContent>
       </Card>
-
+      {error && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 flex items-start gap-2">
+          <span className="text-destructive text-sm">⚠</span>
+          <p className="text-sm text-destructive">{error}</p>
+        </div>
+      )}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Добавить историю болезни и сгенерировать рекомендацию</CardTitle>
+          <CardTitle className="text-lg">
+            Добавить историю болезни и сгенерировать рекомендацию
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Textarea
@@ -207,7 +341,6 @@ export default function PatientPage() {
             disabled={sending}
             className="resize-none"
           />
-          {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">
               Ctrl + Enter для отправки
@@ -228,7 +361,6 @@ export default function PatientPage() {
       </Card>
 
       <Separator />
-
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Рекомендации</h2>
@@ -288,11 +420,10 @@ export default function PatientPage() {
 
 function RecommendationCard({ recommendation }) {
   const { patient_history, thresholds } = recommendation;
-  console.log(thresholds)
+
   return (
     <Card className="transition-colors hover:bg-muted/30">
       <CardContent className="p-5 space-y-4">
-        {/* История пациента */}
         <div>
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
             История
@@ -311,7 +442,6 @@ function RecommendationCard({ recommendation }) {
               max={thresholds.systolic_blood_pressure_max}
               unit="мм рт.ст."
             />
-
             <ThresholdBadge
               icon={<Heart className="h-4 w-4" />}
               label="Диастолическое АД"
@@ -319,7 +449,6 @@ function RecommendationCard({ recommendation }) {
               max={thresholds.diastolic_blood_pressure_max}
               unit="мм рт.ст."
             />
-
             <ThresholdBadge
               icon={<Thermometer className="h-4 w-4" />}
               label="Температура"
@@ -364,6 +493,11 @@ function PatientPageSkeleton() {
           <Skeleton className="h-16 w-16 rounded-full" />
           <div className="space-y-2">
             <Skeleton className="h-7 w-48" />
+            <div className="flex gap-2">
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-4 w-24" />
+            </div>
             <Skeleton className="h-4 w-64" />
           </div>
         </CardContent>

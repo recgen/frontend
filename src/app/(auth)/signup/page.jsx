@@ -46,9 +46,7 @@ export default function RegisterPage() {
         email: formData.get("email"),
         password,
       });
-      console.log("🟢 signup response: ", res.data)
       setUser(res);
-      console.log("🟢 pushing to /");
       router.push("/");
     } catch (err) {
       setError(err.message || "Не удалось зарегистрироваться");

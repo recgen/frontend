@@ -6,7 +6,6 @@ async function proxy(req) {
 
   const headers = new Headers();
 
-  // Пробрасываем куку
   const cookie = req.headers.get("cookie");
   if (cookie) headers.set("cookie", cookie);
 
@@ -29,7 +28,6 @@ async function proxy(req) {
   const resCT = backendRes.headers.get("content-type");
   if (resCT) response.headers.set("content-type", resCT);
 
-  // Пробрасываем Set-Cookie обратно в браузер
   if (backendRes.headers.getSetCookie) {
     for (const sc of backendRes.headers.getSetCookie()) {
       response.headers.append("set-cookie", sc);

@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, User } from "lucide-react";
+import { CreatePatientDialog } from "@/components/shared/create-patient-dialog";
 
 const PAGE_SIZE = 12;
 
@@ -44,11 +45,8 @@ export default function PatientsPage() {
       router.push("/login");
       return;
     }
-
-    // Защита от двойного вызова в Strict Mode
     if (fetchedRef.current && page === 1) return;
     fetchedRef.current = true;
-
     fetchPatients(page);
   }, [page, user, authLoading, router, fetchPatients]);
 
@@ -56,17 +54,26 @@ export default function PatientsPage() {
     if (page > 1) fetchedRef.current = false;
   }, [page]);
 
+  const handlePatientCreated = () => {
+    fetchedRef.current = false;
+    setPage(1);
+    fetchPatients(1);
+  }
+
   if (authLoading) return <PatientsGridSkeleton />;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Пациенты</h1>
-        {!loading && total > 0 && (
-          <span className="text-sm text-muted-foreground">
-            Всего: {total}
-          </span>
-        )}
+        <div>
+          <h1 className="text-3xl font-bold">Пациенты</h1>
+          {!loading && total > 0 && (
+            <span className="text-sm text-muted-foreground">
+              Всего: {total}
+            </span>
+          )}
+        </div>
+        <CreatePatientDialog onCreated={handlePatientCreated} />
       </div>
 
       {loading ? (

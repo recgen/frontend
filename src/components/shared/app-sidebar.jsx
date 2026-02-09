@@ -77,13 +77,6 @@ const UserProfileMenu = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start">
           <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <User />
-              Профиль
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
             <DropdownMenuItem variant="destructive" onClick={logout}>
               <LogOut />
               Выйти
