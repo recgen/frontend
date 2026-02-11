@@ -39,7 +39,11 @@ export default function LoginPage() {
       setUser(user);
       router.push("/");
     } catch (err) {
-      setError(err.message || "Не удалось войти");
+      if (err.status === 401 || err.status == 404) {
+        setError("Не удалось войти, проверьте email и пароль");
+      } else {
+        setError(err.message || "Не удалось войти");
+      }
     } finally {
       setLoading(false);
     }
