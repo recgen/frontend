@@ -72,6 +72,7 @@ export default function LoginPage() {
                 placeholder="ivan@ivanov.ru"
                 required
                 pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                title="Email должен быть в формате имя@домен.зона"
               />
             </div>
 
