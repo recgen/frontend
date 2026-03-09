@@ -198,7 +198,7 @@ export default function PatientPage() {
       } else if (err.status === 422) {
         setError(`Ошибка валидации: ${err.message}`);
       } else {
-        setError("Не удалось сгенерировать рекомендацию. Попробуйте снова.");
+        setError("Не удалось отправить рекомендацию. Попробуйте снова.");
       }
     } finally {
       setSending(false);
@@ -452,8 +452,8 @@ function RecommendationCard({ recommendation }) {
             <ThresholdBadge
               icon={<Thermometer className="h-4 w-4" />}
               label="Температура"
-              min={thresholds.temperature_celsius_min.toFixed(1)}
-              max={thresholds.temperature_celsius_max.toFixed(1)}
+              min={thresholds.temperature_celsius_min}
+              max={thresholds.temperature_celsius_max}
               unit="°C"
             />
           </div>
