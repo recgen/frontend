@@ -5,7 +5,7 @@ on:
       - 'main'
 
 env:
-  REGISTRY: {{ vars.REGISTRY }}
+  REGISTRY: ${{ vars.REGISTRY }}
 
 jobs:
   push:
