@@ -1,0 +1,45 @@
+name: CI/CD
+on:
+  push:
+    branches:
+      - 'main'
+
+env:
+  REGISTRY: {{ vars.REGISTRY }}
+
+jobs:
+  push:
+    name: Build and push docker image to registry
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build Docker image
+        run: |
+          docker build . --file Dockerfile --tag ${{ vars.IMAGE_NAME }}
+      - name: Login to registry
+        run: |
+          echo ${{ secrets.CR_PAT }} | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
+      - name: Push to registry
+        run: |
+          IMAGE_ID=$REGISTRY/${{ github.repository_owner }}/${{ vars.IMAGE_NAME }}
+          VERSION=${{ github.sha }}
+          docker tag ${{ vars.IMAGE_NAME }} $IMAGE_ID:$VERSION
+          docker tag ${{ vars.IMAGE_NAME }} $IMAGE_ID:latest
+          docker push $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:latest
+
+  notify:
+    name: Create repository dispatch event
+    needs: [push]
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+    steps:
+      - name: Repository dispatch
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          repository: ${{ vars.ORGANIZATION }}/${{ vars.DEPLOY_REPO }}
+          token: ${{ secrets.DISPATCH_PAT }}
+          event-type: frontend-image-update
