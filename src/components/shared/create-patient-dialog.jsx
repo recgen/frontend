@@ -67,7 +67,7 @@ export function CreatePatientDialog({ onCreated }) {
     setError("");
 
     try {
-      await api.post("/patient", {
+      await api.post("/patients", {
         name: name.trim(),
         birth_date: birthDate.toISOString(),
         gender,

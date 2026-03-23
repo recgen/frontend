@@ -103,11 +103,11 @@ export default function PatientPage() {
   const fetchPatient = useCallback(async () => {
     setPatientLoading(true);
     try {
-      const data = await api.get(`/patient/${id}`);
+      const data = await api.get(`/patients/${id}`);
       setPatient(data);
     } catch {
       try {
-        const list = await api.get(`/patient/?page=1&size=100`);
+        const list = await api.get(`/patients/?page=1&size=100`);
         const found = (list.patients || []).find((p) => p.id === id);
         setPatient(found || null);
       } catch {
@@ -123,7 +123,7 @@ export default function PatientPage() {
       setRecLoading(true);
       try {
         const data = await api.get(
-          `/recommendation/?patient_id=${id}&page=${p}&size=${REC_PAGE_SIZE}`
+          `/recommendations/?patient_id=${id}&page=${p}&size=${REC_PAGE_SIZE}`
         );
         setRecommendations(data.recommendations || []);
         setRecTotal(data.total || 0);
@@ -163,7 +163,7 @@ export default function PatientPage() {
   const handleDeletePatient = async () => {
     setDeleting(true);
     try {
-      await api.delete(`/patient/${id}`);
+      await api.delete(`/patients/${id}`);
       router.push("/patients");
     } catch (err) {
       console.error("Failed to delete patient:", err);
@@ -180,7 +180,7 @@ export default function PatientPage() {
     setError("");
 
     try {
-      await api.post("/recommendation", {
+      await api.post("/recommendations", {
         patient_id: id,
         patient_history: text,
       });

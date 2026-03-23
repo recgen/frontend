@@ -27,7 +27,7 @@ export default function PatientsPage() {
   const fetchPatients = useCallback(async (p) => {
     setLoading(true);
     try {
-      const data = await api.get(`/patient/?page=${p}&size=${PAGE_SIZE}`);
+      const data = await api.get(`/patients/?page=${p}&size=${PAGE_SIZE}`);
       setPatients(data.patients || []);
       setTotal(data.total || 0);
     } catch (err) {
