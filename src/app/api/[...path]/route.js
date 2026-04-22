@@ -16,7 +16,9 @@ async function proxy(req) {
     ? undefined
     : await req.arrayBuffer();
 
-  const backendRes = await fetch(`${BACKEND}${target}`, {
+  const targetUrl = `${BACKEND}${target}`;
+  console.log(`target url is ${targetUrl}`);
+  const backendRes = await fetch(targetUrl, {
     method: req.method,
     headers,
     body,
